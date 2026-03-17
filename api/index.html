@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { 
+            margin: 0; padding: 20px; 
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white; font-family: system-ui;
+            min-height: 100vh;
+        }
+        .container { max-width: 400px; margin: 0 auto; }
+        h1 { text-align: center; background: linear-gradient(45deg, gold, orange); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat { background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 15px; text-align: center; }
+        .btn { width: 100%; height: 50px; margin: 10px 0; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .vip { background: linear-gradient(45deg, gold, orange); color: #333; }
+        .primary { background: #0088cc; color: white; }
+        .success { background: #00c851; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 VKMusicX Premium</h1>
+        
+        <div class="stat">
+            <div style="font-size: 24px; font-weight: bold;" id="coins">0</div>
+            <div>💰 Coins</div>
+        </div>
+        
+        <div class="stat">
+            <div style="font-size: 24px; font-weight: bold;" id="hits">10</div>
+            <div>🎶 Hits qoldi</div>
+        </div>
+        
+        <button class="btn vip" onclick="getVIP()">⭐ VIP Premium</button>
+        <button class="btn primary" onclick="playHits()">▶️ 10 ta Hit</button>
+        <button class="btn success" onclick="watchAd()">📺 Reklama +100 coins</button>
+        <button class="btn primary" onclick="bonus()">🎁 Bonus</button>
+    </div>
+
+    <script>
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        
+        let coins = 0, hits = 10, vip = false;
+        const userId = Telegram.WebApp.initDataUnsafe?.user?.id || 123;
+        
+        function updateUI() {
+            document.getElementById('coins').textContent = coins;
+            document.getElementById('hits').textContent = vip ? '∞' : hits;
+        }
+        
+        async function saveData() {
+            try {
+                await fetch('/webhook', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: userId, coins: 50})
+                });
+            } catch(e) {}
+        }
+        
+        window.getVIP = async () => {
+            vip = true; hits = 999;
+            coins += 1000;
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            updateUI(); saveData();
+            alert('⭐ VIP Premium faollashtirildi!');
+        };
+        
+        window.playHits = async () => {
+            if (!vip && hits <= 0) return alert('Hits tugadi!');
+            if (!vip) hits--;
+            coins += 50;
+            Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            updateUI(); saveData();
+            alert('🎶 10 ta hit ijro etildi!');
+        };
+        
+        window.watchAd = async () => {
+            setTimeout(() => {
+                coins += 100; hits = Math.min(10, hits + 2);
+                Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                updateUI(); saveData();
+                alert('✅ Reklama ko\'rildi! +100 coins');
+            }, 2000);
+        };
+        
+        window.bonus = async () => {
+            coins += 100;
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            updateUI(); saveData();
+            alert('✅ +100 coins bonus!');
+        };
+        
+        updateUI();
+    </script>
+</body>
+</html>
